@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mini Ticket Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <h1>Mini Ticket Tracker</h1>
+      <p>Pencatat tiket service desk sehari-hari</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- FORM -->
+    <section class="card">
+      <h2 id="formTitle">Tambah Tiket</h2>
+      <form id="ticketForm" novalidate>
+        <div class="grid">
+          <div class="field">
+            <label for="ticketNo">Nomor Tiket *</label>
+            <input type="text" id="ticketNo" placeholder="contoh: INC-001">
+            <small class="error" id="errNo"></small>
+          </div>
+          <div class="field span2">
+            <label for="title">Judul / Deskripsi Singkat *</label>
+            <input type="text" id="title" placeholder="contoh: User tidak bisa login VPN">
+            <small class="error" id="errTitle"></small>
+          </div>
+          <div class="field">
+            <label for="priority">Prioritas</label>
+            <select id="priority">
+              <option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status">
+              <option>Open</option><option>In Progress</option><option>Waiting for User</option><option>Resolved</option><option>Closed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="createdAt">Waktu Masuk *</label>
+            <input type="datetime-local" id="createdAt">
+            <small class="error" id="errTime"></small>
+          </div>
+          <div class="field full">
+            <label for="notes">Catatan / Log Penanganan</label>
+            <textarea id="notes" rows="3" placeholder="Apa yang sudah dicoba dan hasilnya..."></textarea>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="submitBtn">Tambah Tiket</button>
+          <button type="button" class="btn btn-ghost hidden" id="cancelEditBtn">Batal Edit</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- DAFTAR -->
+    <section class="card">
+      <div class="list-head">
+        <h2>Daftar Tiket</h2>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="sampleBtn">Isi Data Contoh</button>
+          <button type="button" class="btn btn-ghost" id="exportBtn">Export CSV</button>
+        </div>
+      </div>
+
+      <p class="summary" id="summary"></p>
+
+      <div class="tabs" id="tabs">
+        <button type="button" class="tab active" data-tab="all">Semua <span id="cntAll">0</span></button>
+        <button type="button" class="tab" data-tab="active">Tiket Aktif <span id="cntActive">0</span></button>
+        <button type="button" class="tab" data-tab="done">Tiket Selesai <span id="cntDone">0</span></button>
+      </div>
+
+      <div class="toolbar">
+        <div class="field">
+          <label for="search">Cari</label>
+          <input type="search" id="search" placeholder="Nomor tiket atau judul">
+        </div>
+        <div class="field">
+          <label for="filterStatus">Status</label>
+          <select id="filterStatus">
+            <option value="">Semua</option><option>Open</option><option>In Progress</option><option>Waiting for User</option><option>Resolved</option><option>Closed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filterPriority">Prioritas</label>
+          <select id="filterPriority">
+            <option value="">Semua</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sortBy">Urutkan</label>
+          <select id="sortBy">
+            <option value="timeDesc">Waktu masuk (terbaru)</option>
+            <option value="timeAsc">Waktu masuk (terlama)</option>
+            <option value="prioDesc">Prioritas (tertinggi)</option>
+            <option value="prioAsc">Prioritas (terendah)</option>
+          </select>
+        </div>
+        <div class="field">
+          <button type="button" class="btn btn-ghost" id="resetBtn">Reset Filter</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>No. Tiket</th><th>Judul</th><th>Prioritas</th><th>Status</th>
+              <th>Waktu Masuk</th><th>Catatan</th><th>Solusi</th><th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <p class="empty hidden" id="emptyMsg">Belum ada tiket yang cocok.</p>
+    </section>
+  </main>
+
+  <!-- POP UP SOLUSI -->
+  <div class="modal-overlay hidden" id="solutionModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <h2 id="modalTitle">Tiket diselesaikan</h2>
+      <p class="muted">Tuliskan solusi atau tindakan yang menyelesaikan tiket ini.</p>
+      <div class="field">
+        <label for="solution">Solusi / Penyelesaian *</label>
+        <textarea id="solution" rows="4" placeholder="contoh: Reset password dan clear cache VPN client, user sudah bisa login."></textarea>
+        <small class="error" id="errSolution"></small>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="saveSolutionBtn">Simpan sebagai Resolved</button>
+        <button type="button" class="btn btn-ghost" id="cancelSolutionBtn">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
